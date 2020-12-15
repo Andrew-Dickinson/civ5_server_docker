@@ -1,0 +1,8 @@
+# Ignore Civ 5 game/save dirs
+civ5game/*
+!civ5game/README.md
+civ5save/*
+!civ5save/README.md
+
+# During Civ 5 installation, a `temp` dir is created
+temp
