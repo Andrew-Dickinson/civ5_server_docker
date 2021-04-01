@@ -5,7 +5,7 @@ RUN dnf -y update
 
 # Add EPEL, PowerTools, Raven, and Raven Extras repo
 RUN dnf -y install epel-release 'dnf-command(config-manager)'
-RUN dnf -y config-manager --set-enabled PowerTools
+RUN dnf -y config-manager --set-enabled powertools
 # RUN dnf -y install https://pkgs.dyn.su/el8/base/x86_64/raven-release-1.0-1.el8.noarch.rpm
 # RUN dnf -y install raven-release
 # RUN dnf -y config-manager --set-enabled raven-extras
