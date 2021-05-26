@@ -32,14 +32,8 @@ needs to stay running the background for Civ to not crash, though you don't need
 
 # Ports you might need to open/let through a firewall
 
-- `27015 UDP`: For Steam dedicated server traffic
-- `27016 UDP`: For Civ 5 pitboss
-- `27000-27100 UDP` maybe? ¯\\\_(ツ)\_/¯
-- `3478 UDP` perhaps? but also maybe not?
-- A f---ing huge range I don't even know where it starts or ends, but `53247-59391 UDP` seemed to do it
-
-Y..yeah ALMOST NONE OF THIS SEEMS TO BE WELL DOCUMENTED, OR EVEN DOCUMENTED AT ALL, so I don't even know myself. I'm
-still not even sure I got everything. >.<
+`27016 UDP` is the only port you need to allow incoming traffic through. If you're just using plain `iptables` as a
+firewall, bringing up the docker container should open that port for you.
 
 ## And now, a rant...
 
@@ -83,5 +77,7 @@ Just gonna copy-paste a chat log as I don't feel like typing this out again, lig
 > that's just...not documented anywhere  
 > \>.<  
 > but uhh, yeah finally this is a thing  
+
+(...in hindsight, the firewall issues was because we were filtering outgoing traffic and I didn't realize it >.<)
 
 Now if you'll excuse me, I'm going to go curl up into a ball now and have nightmares about this.
