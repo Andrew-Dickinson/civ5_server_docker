@@ -16,6 +16,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 # Run our built container
 docker run \
     -it \
+    --env-file "$DIR/env_file.txt" \
     --mount type=bind,source="$DIR/civ5game",target="/root/civ5game" \
     --mount type=bind,source="$DIR/civ5save",target="/root/My Games/Sid Meier's Civilization 5" \
     -p 127.0.0.1:5900:5900/tcp \

@@ -145,11 +145,18 @@ WORKDIR /
 
 ENV WINEARCH=win32
 
+# Force software rendering, and also set $DISPLAY while we're here
+ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99
+
 # Install Steam for Windows
 # You don't even need to be logged in to Steam, it just needs to be there for the game to not crash when hosting a game
 RUN curl "https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe" -o /root/SteamSetup.exe
 RUN wine /root/SteamSetup.exe /S
 RUN rm /root/SteamSetup.exe
+
+# Run steam so that it auto-updates at build time instead of on every container run
+RUN /usr/bin/Xvfb :99 -screen 0 1920x1080x24 -dpi 96 & \
+sleep 6 && timeout 40 wineconsole "/root/.wine/drive_c/Program Files/Steam/Steam.exe" -tcp -no-browser +open steam://open/minigameslist || true
 
 # Install libstrangle to limit the framerate
 RUN git clone https://gitlab.com/torkel104/libstrangle.git
@@ -157,16 +164,39 @@ RUN chmod a+rw /libstrangle
 RUN cd /libstrangle && make && make install
 RUN rm -rf /libstrangle
 
-# Force software rendering, and also set $DISPLAY while we're here
-ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99
-
 # Make graphics look bad (less taxing on the CPU)
 COPY ["./GraphicsSettingsDX9.ini", "/root/My Games/Sid Meier\\'s Civilization 5/GraphicsSettingsDX9.ini"]
 
-# Add our list-of-stuff-to-execute
-COPY ./supervisord.conf /etc/supervisord.conf
 
 # For testing software rendering
 # RUN dnf -y install glx-utils
+
+# Install python-based faux SMTP server
+RUN dnf -y install python3
+RUN pip3 install boto3 mail-parser
+RUN mkdir -p /usr/lib/smtp_honeytrap/
+COPY ./smtp_server.py /usr/lib/smtp_honeytrap/
+
+
+# Install telemetry system to transmit players who haven't taken their turn
+RUN dnf install -y inotify-tools sqlite
+RUN pip3 install awscli
+RUN aws configure set default.region us-east-2
+RUN mkdir -p /usr/lib/tx_player_turns/
+COPY ./tx_player_turns.bash /usr/lib/tx_player_turns/
+
+
+# Install telemetry system to transmit number of connected players
+RUN dnf install -y net-tools
+RUN mkdir -p /usr/lib/tx_players_connected/
+COPY ./tx_players_connected.bash /usr/lib/tx_players_connected/tx_players_connected.bash
+
+
+# Automatically backup the save files to S3
+RUN mkdir -p /usr/lib/saves_backup/
+COPY ./s3_backup.bash /usr/lib/saves_backup/s3_backup.bash
+
+# Add our list-of-stuff-to-execute
+COPY ./supervisord.conf /etc/supervisord.conf
 
 CMD /usr/bin/supervisord -c /etc/supervisord.conf
